@@ -94,8 +94,10 @@ void WarpBilinear::draw( const gl::Texture2dRef &texture, const Area &srcArea, c
 	clip( area, rect );
 
 	// set texture coordinates
-	float w = static_cast<float>( texture->getWidth() );
-	float h = static_cast<float>( texture->getHeight() );
+	//float w = static_cast<float>( texture->getWidth() );
+	//float h = static_cast<float>( texture->getHeight() );
+  float w = static_cast<float>(texture->getActualWidth());
+  float h = static_cast<float>(texture->getActualHeight());
 
 	if( texture->getTarget() == GL_TEXTURE_RECTANGLE_ARB )
 		setTexCoords( (float)area.x1, (float)area.y1, (float)area.x2, (float)area.y2 );

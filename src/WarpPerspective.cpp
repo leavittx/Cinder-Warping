@@ -122,7 +122,11 @@ void WarpPerspective::draw( const gl::Texture2dRef &texture, const Area &srcArea
 	mShader->uniform( "uEdges", mEdges );
 	mShader->uniform( "uExponent", mExponent );
 
-	auto coords = texture->getAreaTexCoords( srcArea );
+  
+	//auto coords = texture->getAreaTexCoords( srcArea );
+  float w = static_cast<float>(texture->getActualWidth());
+  float h = static_cast<float>(texture->getActualHeight());
+  Rectf coords(area.x1 / w, area.y1 / h, area.x2 / w, area.y2 / h);
 	gl::drawSolidRect( rect, coords.getUpperLeft(), coords.getLowerRight() );
 
 	gl::popModelMatrix();
