@@ -112,6 +112,8 @@ class Warp : public std::enable_shared_from_this<Warp> {
 	virtual void setSize( const ci::ivec2 &size ) { setSize( size.x, size.y ); }
 	//! set the width and height of the content in pixels
 	virtual void setSize( int w, int h );
+  //! set the source texture area in pixels
+  virtual void setSrcArea( const ci::Area& srcArea );
 
 	//! returns the luminance value for the red, green and blue channels, used for edge blending (0.5 = linear)
 	virtual const ci::vec3 &getLuminance() const { return mLuminance; }
@@ -255,6 +257,9 @@ class Warp : public std::enable_shared_from_this<Warp> {
 	ci::vec2 mWindowSize;
 	float    mBrightness;
 	unsigned mSelected;
+
+  //! source area for the texture
+  ci::Area mSrcArea;
 
 	//! Determines the number of horizontal and vertical control points
 	int mControlsX;
@@ -424,6 +429,7 @@ class WarpPerspective : public Warp {
   public:
 	//!
 	static WarpPerspectiveRef create() { return std::make_shared<WarpPerspective>(); }
+  static WarpPerspectiveRef create(const WarpPerspective& other) { return std::make_shared<WarpPerspective>(other); }
 
 	WarpPerspective( void );
 	virtual ~WarpPerspective() {}

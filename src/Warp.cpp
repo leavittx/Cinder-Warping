@@ -48,13 +48,24 @@ Warp::Warp( WarpType type )
     , mEdges( 0.0f )
     , mExponent( 2.0f )
     , mSelectedTime( 0 )
+    , mSrcArea(ivec2(0, 0), ivec2(0, 0))
 {
 	mWindowSize = vec2( float( mWidth ), float( mHeight ) );
 }
 
 void Warp::draw( const gl::Texture2dRef &texture )
 {
-	draw( texture, texture->getBounds(), Rectf( getBounds() ) );
+  const auto srcArea = [&]()
+  {
+    // If source area was set then return it, just clipped by texture bounds for safety
+    if (mSrcArea.calcArea() > 0)
+      return mSrcArea.getClipBy(texture->getBounds());
+
+    // Otherwise return the texture bounds
+    return texture->getBounds();
+  }();
+
+	draw( texture, srcArea, Rectf( getBounds() ) );
 }
 
 void Warp::draw( const gl::Texture2dRef &texture, const Area &srcArea )
@@ -140,6 +151,15 @@ XmlTree Warp::toXml() const
 	xml.setAttribute( "height", mControlsY );
 	xml.setAttribute( "brightness", mBrightness );
 
+  // add <texture_src_area> tag
+  XmlTree tsa;
+  tsa.setTag("texture_src_area");
+  tsa.setAttribute("x0", mSrcArea.getX1());
+  tsa.setAttribute("y0", mSrcArea.getY1());
+  tsa.setAttribute("x1", mSrcArea.getX2());
+  tsa.setAttribute("y1", mSrcArea.getY2());
+  xml.push_back(tsa);
+
 	// add <controlpoint> tags (column-major)
 	std::vector<vec2>::const_iterator itr;
 	for( itr = mPoints.begin(); itr != mPoints.end(); ++itr ) {
@@ -189,6 +209,15 @@ void Warp::fromXml( const XmlTree &xml )
 	mControlsY = xml.getAttributeValue<int>( "height", 2 );
 	mBrightness = xml.getAttributeValue<float>( "brightness", 1.0f );
 
+  // load texture src area
+  auto tsa = xml.find("texture_src_area");
+  if (tsa != xml.end()) {
+    mSrcArea.x1 = tsa->getAttributeValue<int>("x0", 0);
+    mSrcArea.y1 = tsa->getAttributeValue<int>("y0", 0);
+    mSrcArea.x2 = tsa->getAttributeValue<int>("x1", 0);
+    mSrcArea.y2 = tsa->getAttributeValue<int>("y1", 0);
+  }
+
 	// load control points
 	mPoints.clear();
 	for( auto child = xml.begin( "controlpoint" ); child != xml.end(); ++child ) {
@@ -235,6 +264,11 @@ void Warp::setSize( int w, int h )
 	mHeight = h;
 
 	mIsDirty = true;
+}
+
+void Warp::setSrcArea( const ci::Area& srcArea )
+{
+  mSrcArea = srcArea;
 }
 
 vec2 Warp::getControlPoint( unsigned index ) const
